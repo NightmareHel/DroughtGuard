@@ -57,7 +57,7 @@ DroughtGuard/
 ├─ model.pkl                 # Trained logistic regression model
 ├─ data/
 │  ├─ features.csv          # NDVI, rainfall, price features by region
-│  └─ kenya.geojson         # Admin-level map boundaries
+│  └─ mock_data_notes.md    # Notes on mock data structure
 ├─ templates/
 │  └─ index.html            # Main UI (Leaflet map + Jinja placeholders)
 ├─ static/

@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nairobi",
+        "id": "nairobi"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[36.6, -1.2], [36.8, -1.2], [36.8, -1.4], [36.6, -1.4], [36.6, -1.2]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mombasa",
+        "id": "mombasa"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[39.6, -4.0], [39.8, -4.0], [39.8, -4.2], [39.6, -4.2], [39.6, -4.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kisumu",
+        "id": "kisumu"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[34.7, 0.0], [34.9, 0.0], [34.9, -0.2], [34.7, -0.2], [34.7, 0.0]]]
+      }
+    }
+  ]
+}

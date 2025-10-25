@@ -6,8 +6,8 @@
 
 ```bash
 # Create virtual environment
-python -m venv venv
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned     
+py -3.11 -m venv venv
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned  // If needed and says not allowed to run   
 # Activate virtual environment
 # On Windows:
 venv\Scripts\activate

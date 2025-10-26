@@ -29,7 +29,7 @@ except Exception:
 
 # --- Config from environment
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-pro-latest")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.2"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
 
@@ -101,8 +101,10 @@ def _make_prompt(mode: str, region: str, horizon_label: str, current_month: str,
     """Build strict-JSON prompt. We log a hash so you can prove it varies by region/h."""
     if mode == "explain":
         system = (
-            "You are a humanitarian early-warning analyst for drought and food insecurity.\n"
-            "Provide concise, operational explanations. Neutral tone. 3-5 sentences."
+            "Analyze the last 3 months of environmental and market indicators for {region}."
+            "Predict drought and food insecurity trends for the next 2 months."
+            "Summarize whether preventative actions are recommended."
+
         )
         user = f"""Explain the risk for {region}, {horizon_label} ahead (as of {current_month}).
 
@@ -120,10 +122,12 @@ Respond with JSON only:
 }}"""
     else:
         system = (
-            "You are a humanitarian early-warning analyst for drought and food insecurity.\n"
-            "Provide detailed briefings with actionable recommendations. Neutral tone. 5-7 sentences + 1-2 actions."
-        )
-        user = f"""Brief the risk for {region}, {horizon_label} ahead (as of {current_month}).
+                "You are an environmental analysis assistant. "
+                "Interpret climate and agricultural indicators in a neutral and factual tone. "
+                "Do not discuss humanitarian crises or suffering. "
+                "Summarize patterns in vegetation, rainfall, and market indicators."
+            )
+    user = f"""Brief the risk for {region}, {horizon_label} ahead (as of {current_month}).
 
 Context:
 - Risk Probability: {prob:.2f}
@@ -136,7 +140,7 @@ Respond with JSON only:
 {{
   "explanation": "5-7 sentence detailed briefing",
   "actions": ["Action 1", "Action 2"],
-  "disclaimers": "One sentence uncertainty note"
+  "disclaimers": "One sentence uncertainty note"    
 }}"""
     prompt = f"{system}\n\n{user}"
     try:
@@ -151,35 +155,63 @@ def _call_gemini_json(prompt: str) -> Dict[str, Any]:
         raise RuntimeError(reason)
 
     model = genai.GenerativeModel(GEMINI_MODEL)
-    resp = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
-            temperature=LLM_TEMPERATURE,
-            max_output_tokens=LLM_MAX_TOKENS,
+
+    try:
+        resp = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=LLM_TEMPERATURE,
+                max_output_tokens=LLM_MAX_TOKENS,
+            ),
         )
-    )
 
-    text = (getattr(resp, "text", None) or "").strip()
-    # Some SDK versions put pieces in candidates[0].content.parts
-    if not text and getattr(resp, "candidates", None):
-        cand0 = resp.candidates[0]
-        content = getattr(cand0, "content", None)
-        parts = getattr(content, "parts", None)
-        if parts:
-            text = "".join(getattr(p, "text", "") for p in parts).strip()
+        # --- Safely extract text (without touching resp.text) ---
+        text = ""
+        try:
+            if hasattr(resp, "candidates") and resp.candidates:
+                parts = []
+                for c in resp.candidates:
+                    if hasattr(c, "content") and hasattr(c.content, "parts"):
+                        for p in c.content.parts:
+                            if hasattr(p, "text"):
+                                parts.append(p.text)
+                text = "".join(parts).strip()
+        except Exception as e:
+            print(f"[WARN] Could not parse response parts: {e}")
 
-    if not text:
-        raise ValueError("No text returned by Gemini")
+        # --- Handle blocked or empty output ---
+        if not text:
+            print("[WARN] Gemini produced no usable text — likely safety-blocked.")
+            try:
+                if hasattr(resp, "candidates") and resp.candidates:
+                    print(json.dumps(resp.candidates[0].safety_ratings, indent=2))
+            except Exception:
+                print("[WARN] Could not dump safety_ratings.")
+            return {
+                "explanation": "AI response was withheld by safety filters or returned empty.",
+                "disclaimers": "Gemini output unavailable. Proceed with model predictions only."
+            }
 
-    # Extract first JSON object
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end == -1 or end <= start:
-        raise ValueError(f"No JSON found in response: {text[:200]}")
+        print("[DEBUG] Gemini raw response text:", text[:300])
 
-    data = json.loads(text[start:end+1])
-    if "explanation" not in data:
-        raise ValueError(f"JSON missing 'explanation': {data}")
-    return data
+        # --- Extract JSON from text ---
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end == -1 or end <= start:
+            raise ValueError(f"No JSON found in response: {text[:200]}")
+
+        data = json.loads(text[start:end + 1])
+        if "explanation" not in data:
+            raise ValueError(f"JSON missing 'explanation': {data}")
+        return data
+
+    except Exception as e:
+        print(f"[ERROR] Gemini call failed: {e}")
+        import traceback; traceback.print_exc()
+        # Safe fallback so frontend never breaks
+        return {
+            "explanation": f"Gemini error: {e}",
+            "disclaimers": "Fallback text used due to LLM error."
+        }
 
 
 # --------------------------------------------------------------------------------------

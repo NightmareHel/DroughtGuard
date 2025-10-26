@@ -38,6 +38,8 @@ from utils.categorizer import categorize_risk
 # -------------------------------------------------------------------
 AI_ADVISOR_AVAILABLE = False
 
+print("[DEBUG] GEMINI_API_KEY starts with:", os.getenv("GEMINI_API_KEY", "")[:6])
+print("[DEBUG] GEMINI_MODEL:", os.getenv("GEMINI_MODEL"))
 try:
     from utils.llm_chain import get_explanation, get_brief, setup_cache, gemini_ready
     from utils.ai_cache import ai_cache
@@ -154,32 +156,26 @@ def predict():
 # 5) Helpers for AI facts & month
 # -------------------------------------------------------------------
 def collect_region_facts(region: str, horizon: int) -> dict:
-    """
-    Collect facts for a region and horizon.
-    Returns a dict with probability and signal facts for prompting.
-    """
-    region_rows = features_df[features_df['region'] == region]
-    if region_rows.empty:
+    """Collect facts for a region and horizon."""
+    region_data = features_df[features_df["region"] == region]
+    if region_data.empty:
         raise ValueError(f"Region not found: {region}")
 
-    latest = region_rows.iloc[-1]
-
-    # Predict for this horizon
+    latest = region_data.iloc[-1]
     probabilities = predict_risk(latest.to_dict())
-    prob = float(probabilities.get(horizon, 0.0))
-
-    # Categorize risk
+    prob = probabilities.get(horizon, 0.0)
     risk_category = categorize_risk(prob, horizon)
 
-    # Collect facts (use your column names)
     facts = {
         "prob": prob,
-        "risk_tier": risk_category['label'],
-        "ndvi_anomaly": latest.get('ndvi_anomaly', None),
-        "spi1": None,   # Not present in current dataset
-        "spi3": None,   # Not present in current dataset
-        "price_yoy": latest.get('food_price_inflation', None),
+        "risk_tier": risk_category["label"],
+        "ndvi_anomaly": latest.get("ndvi_anomaly", 0),
+        "rainfall_anomaly": latest.get("rainfall_anomaly", 0),
+        "price_yoy": latest.get("food_price_inflation", 0),
     }
+
+    # Optional rolling average example
+    facts["avg_ndvi_3m"] = region_data["ndvi_anomaly"].tail(3).mean()
 
     # Deltas if available
     try:
@@ -307,5 +303,5 @@ def brief_region(region):
 
 if __name__ == '__main__':
     print("[OK] Starting DroughtGuard Flask app...")
-    print(f"[OK] Gemini model: {os.getenv('GEMINI_MODEL', 'gemini-1.5-pro-latest')}")
+    print(f"[OK] Gemini model: {os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')}")
     app.run(debug=True, host='0.0.0.0', port=5000)

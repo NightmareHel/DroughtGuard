@@ -3,8 +3,148 @@
 {% block title %}Region Details - DroughtGuard{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Region Details</h2>
-    <!-- Region-specific content will go here -->
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 id="region-title">Loading region...</h2>
+        <div class="text-muted">
+            Last updated: <span id="last-updated">...</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Forecast cards for each horizon -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Next Month</h5>
+                </div>
+                <div class="card-body">
+                    <div class="risk-indicator" id="risk-1"></div>
+                    <h3 class="text-center mb-3" id="risk-label-1">...</h3>
+                    <div class="progress">
+                        <div class="progress-bar" id="risk-bar-1" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2" id="risk-prob-1">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Two Months Ahead</h5>
+                </div>
+                <div class="card-body">
+                    <div class="risk-indicator" id="risk-2"></div>
+                    <h3 class="text-center mb-3" id="risk-label-2">...</h3>
+                    <div class="progress">
+                        <div class="progress-bar" id="risk-bar-2" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2" id="risk-prob-2">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Three Months Ahead</h5>
+                </div>
+                <div class="card-body">
+                    <div class="risk-indicator" id="risk-3"></div>
+                    <h3 class="text-center mb-3" id="risk-label-3">...</h3>
+                    <div class="progress">
+                        <div class="progress-bar" id="risk-bar-3" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2" id="risk-prob-3">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historical data chart -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Historical Risk Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="historical-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const region = urlParams.get('region');
+    
+    if (!region) {
+        window.location.href = '/';
+        return;
+    }
+
+    // Update region title
+    document.getElementById('region-title').textContent = region;
+    
+    // Load predictions
+    fetch('/api/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ region: region })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update last updated time
+        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+        
+        // Update predictions for each horizon
+        for (const [horizon, pred] of Object.entries(data.predictions)) {
+            const h = parseInt(horizon);
+            document.getElementById(`risk-label-${h}`).textContent = pred.category;
+            document.getElementById(`risk-prob-${h}`).textContent = `${(pred.probability * 100).toFixed(1)}% Risk`;
+            
+            const riskBar = document.getElementById(`risk-bar-${h}`);
+            riskBar.style.width = `${pred.probability * 100}%`;
+            riskBar.style.backgroundColor = pred.color;
+            
+            const indicator = document.getElementById(`risk-${h}`);
+            indicator.style.backgroundColor = pred.color;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to load predictions: ' + error.message);
+    });
+});
+</script>
+
+<style>
+.risk-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin: 0 auto 1rem auto;
+}
+
+.progress {
+    height: 1.5rem;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+</style>
 {% endblock %}

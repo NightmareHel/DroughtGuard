@@ -41,12 +41,42 @@ def get_regions():
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    """Predict food insecurity risk for a region."""
+    """Predict food insecurity risk for a region across multiple time horizons."""
     data = request.get_json()
     region = data.get('region')
     
     if not region:
         return jsonify({'error': 'Region is required'}), 400
+        
+    try:
+        # Get latest features for the region
+        region_features = features_df[features_df['region'] == region].iloc[-1].to_dict()
+        
+        # Get predictions for all horizons
+        probabilities = predict_risk(region_features)
+        
+        # Categorize risk for each horizon
+        predictions = {}
+        for horizon, prob in probabilities.items():
+            risk_category = categorize_risk(prob)
+            predictions[horizon] = {
+                'probability': prob,
+                'category': risk_category['label'],
+                'color': risk_category['color']
+            }
+            
+        # Map region name if needed
+        display_name = REGION_MAP.get(region, region)
+            
+        return jsonify({
+            'region': region,
+            'display_name': display_name,
+            'predictions': predictions
+        })
+    except Exception as e:
+        return jsonify({
+            'error': f'Prediction failed: {str(e)}'
+        }), 500
 
     # ✅ Normalize region name if needed
     mapped_name = REGION_MAP.get(region, region)

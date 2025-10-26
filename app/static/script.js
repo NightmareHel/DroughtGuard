@@ -2,6 +2,7 @@
 
 let map;
 let geojsonLayer;
+let currentPredictions = {};
 
 // Initialize map
 function initMap() {
@@ -156,20 +157,57 @@ function predictRisk(region) {
 // Display results
 function displayResults(data) {
     const resultsPanel = document.getElementById('results');
+    currentPredictions = data.predictions;
     
-    resultsPanel.innerHTML = `
-        <h3>Prediction Results</h3>
-        <p><strong>Region:</strong> ${data.region}</p>
-        <p><strong>Risk Level:</strong> 
-            <span class="risk-badge" style="background-color: ${data.risk_category.color}">
-                ${data.risk_category.label}
-            </span>
-        </p>
-        <p><strong>Risk Probability:</strong> ${(data.probability * 100).toFixed(1)}%</p>
-        <p><strong>NDVI Anomaly:</strong> ${data.features.ndvi_anomaly.toFixed(2)}</p>
-        <p><strong>Rainfall Anomaly:</strong> ${data.features.rainfall_anomaly.toFixed(2)}</p>
-        <p><strong>Food Price Inflation:</strong> ${data.features.food_price_inflation.toFixed(2)}</p>
+    // Create forecast cards
+    let forecastHtml = `
+        <h3>Forecast for ${data.display_name}</h3>
+        <div class="forecast-grid">
     `;
+    
+    // Add card for each horizon
+    const horizonLabels = {
+        1: 'Next Month',
+        2: 'Two Months Ahead',
+        3: 'Three Months Ahead'
+    };
+    
+    for (const [horizon, pred] of Object.entries(data.predictions)) {
+        const h = parseInt(horizon);
+        forecastHtml += `
+            <div class="forecast-card">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>${horizonLabels[h]}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="risk-indicator" style="background-color: ${pred.color}"></div>
+                        <h3 class="text-center">${pred.category}</h3>
+                        <div class="progress">
+                            <div class="progress-bar" 
+                                role="progressbar" 
+                                style="width: ${pred.probability * 100}%; background-color: ${pred.color}"
+                                aria-valuenow="${pred.probability * 100}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <p class="text-center mt-2">${(pred.probability * 100).toFixed(1)}% Risk</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    forecastHtml += '</div>';
+    
+    // Update panel content
+    resultsPanel.innerHTML = forecastHtml;
+    
+    // Use the nearest-term prediction for map coloring
+    if (data.predictions[1]) {
+        updateMapRegion(data.region, data.predictions[1].color);
+    }
 }
 
 // Update map region color

@@ -5,6 +5,10 @@ from typing import Dict, List, Optional
 from datetime import datetime
 
 REQUIRED_FEATURES = {
+    'ndvi_anomaly': float,
+    'rainfall_anomaly': float,
+    'food_price_inflation': float,
+    'temp_anomaly': float,
     'ndvi_anomaly_lag1': float,
     'rainfall_anomaly_lag1': float,
     'food_price_inflation_lag1': float,

@@ -146,7 +146,6 @@ function predictRisk(region) {
         }
         
         displayResults(data);
-        updateMapRegion(region, data.risk_category.color);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -247,4 +246,5 @@ function updateMapRegion(regionName, color) {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initMap();
+    loadRegions();
 });

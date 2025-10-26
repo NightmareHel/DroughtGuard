@@ -1,0 +1,73 @@
+# DroughtGuard Multi-Horizon Training Configuration
+
+# Data paths
+input:
+  data_path: "data/features.csv"  # default; can be overridden via ENV TRAIN_DATA_PATH
+
+# Column identification
+columns:
+  id_col: "region"  # region/county column name
+  date_col: "month"  # date/month column name
+
+# Feature engineering
+features:
+  # Known feature candidates (will use those that exist in the data)
+  candidates:
+    - "ndvi_anomaly"
+    - "rainfall_anomaly" 
+    - "food_price_inflation"
+    - "temp_anomaly"
+    - "spi1"
+    - "spi3"
+    - "price_yoy"
+  
+  # Lag features
+  lags: [1, 2]  # build x_t, x_t-1, x_t-2 when present
+  
+  # Seasonality features
+  seasonality: true  # add sin_month, cos_month from date
+  
+  # Difference features
+  diffs: true  # include deltas where possible (e.g., ndvi_diff = ndvi_t - ndvi_t-1)
+
+# Target configuration
+targets:
+  horizons: [1, 2, 3]  # months ahead
+  
+  # Explicit label columns (if they exist in the data)
+  explicit_label_cols:
+    1: "y_h1"
+    2: "y_h2" 
+    3: "y_h3"
+  
+  # Base target column (fallback for shifting)
+  base_target_col: "risk_label"  # shift by +h if explicit not present
+
+# Training configuration
+training:
+  model_type: "xgboost"  # fallback to "logreg" if xgb unavailable
+  random_state: 42
+  calibration: "isotonic"
+  class_weight: "balanced"  # if using logreg
+  test_strategy: "rolling_origin"
+  metrics: ["roc_auc", "brier", "recall_at_fpr_0.2"]
+
+# Risk thresholds per horizon
+thresholds:
+  h1:
+    red: 0.60
+    yellow: 0.35
+  h2:
+    red: 0.57
+    yellow: 0.33
+  h3:
+    red: 0.55
+    yellow: 0.30
+
+# Export configuration
+export:
+  out_models_dir: "model"
+  out_data_dir: "data"
+  forecasts_file: "data/forecasts.csv"
+  metrics_file: "model/metrics.json"
+  versioned_suffix: true  # append timestamp to artifacts

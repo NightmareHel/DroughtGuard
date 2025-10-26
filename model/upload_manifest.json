@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-10-26T03:17:20.015850",
+  "uploaded_files": [
+    {
+      "local_path": "model_h1.pkl",
+      "remote_path": "models/model_h1.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h1.pkl"
+    },
+    {
+      "local_path": "model_h12025-10-26_03-15-50.pkl",
+      "remote_path": "models/model_h12025-10-26_03-15-50.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h12025-10-26_03-15-50.pkl"
+    },
+    {
+      "local_path": "model_h2.pkl",
+      "remote_path": "models/model_h2.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h2.pkl"
+    },
+    {
+      "local_path": "model_h22025-10-26_03-15-50.pkl",
+      "remote_path": "models/model_h22025-10-26_03-15-50.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h22025-10-26_03-15-50.pkl"
+    },
+    {
+      "local_path": "model_h3.pkl",
+      "remote_path": "models/model_h3.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h3.pkl"
+    },
+    {
+      "local_path": "model_h32025-10-26_03-15-50.pkl",
+      "remote_path": "models/model_h32025-10-26_03-15-50.pkl",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/model_h32025-10-26_03-15-50.pkl"
+    },
+    {
+      "local_path": "metrics.json",
+      "remote_path": "models/metrics.json",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/metrics.json"
+    },
+    {
+      "local_path": "metrics2025-10-26_03-15-50.json",
+      "remote_path": "models/metrics2025-10-26_03-15-50.json",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/models/metrics2025-10-26_03-15-50.json"
+    },
+    {
+      "local_path": "data/forecasts.csv",
+      "remote_path": "data/forecasts.csv",
+      "url": "https://droughtguardbucket.nyc3.digitaloceanspaces.com/droughtguardbucket/data/forecasts.csv"
+    }
+  ],
+  "total_files": 9
+}

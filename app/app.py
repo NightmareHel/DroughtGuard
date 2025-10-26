@@ -35,8 +35,8 @@ def index():
 
 @app.route('/api/regions')
 def get_regions():
-    """Get list of regions from dataset."""
-    regions = features_df['region'].tolist()
+    """Get list of unique regions from dataset."""
+    regions = features_df['region'].unique().tolist()
     return jsonify({'regions': regions})
 
 @app.route('/api/predict', methods=['POST'])
@@ -58,7 +58,7 @@ def predict():
         # Categorize risk for each horizon
         predictions = {}
         for horizon, prob in probabilities.items():
-            risk_category = categorize_risk(prob)
+            risk_category = categorize_risk(prob, horizon)
             predictions[horizon] = {
                 'probability': prob,
                 'category': risk_category['label'],
@@ -78,33 +78,11 @@ def predict():
             'error': f'Prediction failed: {str(e)}'
         }), 500
 
-    # ✅ Normalize region name if needed
-    mapped_name = REGION_MAP.get(region, region)
-    
-    # Get features for region
-    region_data = features_df[features_df['region'] == region]
-    if region_data.empty:
-        return jsonify({'error': 'Region not found'}), 404
-    
-    features = region_data[['ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation']].iloc[0]
-    
-    # Make prediction
-    probability = predict_risk(features.to_dict())
-    risk_category = categorize_risk(probability)
-    
-    # ✅ Return mapped_name (so it matches GeoJSON)
-    return jsonify({
-        'region': mapped_name,
-        'probability': float(probability),
-        'risk_category': risk_category,
-        'features': features.to_dict()
-    })
-
 @app.route('/api/map-data')
 def get_map_data():
     """Get GeoJSON data for map visualization."""
     return jsonify(geojson_data)
 
 if __name__ == '__main__':
-    print("✅ Starting DroughtGuard Flask app...")
+    print("[OK] Starting DroughtGuard Flask app...")
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-10-26T03:15:50.642473",
+  "features_used": [
+    "ndvi_anomaly",
+    "rainfall_anomaly",
+    "food_price_inflation",
+    "temp_anomaly",
+    "ndvi_anomaly_lag1",
+    "ndvi_anomaly_lag2",
+    "rainfall_anomaly_lag1",
+    "rainfall_anomaly_lag2",
+    "food_price_inflation_lag1",
+    "food_price_inflation_lag2",
+    "temp_anomaly_lag1",
+    "temp_anomaly_lag2",
+    "sin_month",
+    "cos_month",
+    "ndvi_anomaly_diff",
+    "rainfall_anomaly_diff",
+    "food_price_inflation_diff",
+    "temp_anomaly_diff"
+  ],
+  "horizons": {
+    "h1": {
+      "roc_auc": 0.4872960372960373,
+      "brier": 0.3096740580750096,
+      "recall_at_fpr_0.2": 0.15384615384615385
+    },
+    "h2": {
+      "roc_auc": 0.5136021872863978,
+      "brier": 0.3033422333942515,
+      "recall_at_fpr_0.2": 0.21818181818181817
+    },
+    "h3": {
+      "roc_auc": 0.4381696428571429,
+      "brier": 0.31213038015404276,
+      "recall_at_fpr_0.2": 0.07142857142857142
+    }
+  }
+}

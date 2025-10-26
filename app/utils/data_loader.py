@@ -14,9 +14,9 @@ def load_geojson():
     try:
         with open(geojson_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            print(f"✅ Loaded GeoJSON: {geojson_path}")
+            print(f"[OK] Loaded GeoJSON: {geojson_path}")
     except Exception as e:
-        print(f"❌ Failed to read GeoJSON: {e}")
+        print(f"[ERROR] Failed to read GeoJSON: {e}")
         return {}
 
     # Normalize property names so JS can read feature.properties.name
@@ -40,9 +40,9 @@ def load_features():
         df = pd.read_csv(features_path)
         # Normalize column names to lowercase
         df.columns = [c.strip().lower() for c in df.columns]
-        print(f"✅ Loaded features from: {features_path}")
+        print(f"[OK] Loaded features from: {features_path}")
         print("Columns:", df.columns.tolist())
         return df
     
-    print(f"❌ Features CSV not found at: {features_path}")
+    print(f"[ERROR] Features CSV not found at: {features_path}")
     return pd.DataFrame()

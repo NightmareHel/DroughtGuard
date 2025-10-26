@@ -15,6 +15,30 @@ function initMap() {
     loadGeoJson();
 }
 
+// Load region names into dropdown
+function loadRegions() {
+    fetch('/api/regions')
+        .then(response => response.json())
+        .then(data => {
+            console.log("✅ /api/regions response:", data);
+            const select = document.getElementById('region-select');
+            select.innerHTML = '<option value="">-- Select a region --</option>'; // clear existing
+
+            if (data.regions && data.regions.length > 0) {
+                data.regions.forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region;
+                    option.textContent = region;
+                    select.appendChild(option);
+                });
+            } else {
+                console.warn('⚠️ No regions found in /api/regions');
+            }
+        })
+        .catch(error => console.error('❌ Error loading regions:', error));
+}
+
+
 // Load GeoJSON data
 function loadGeoJson() {
     fetch('/api/map-data')
@@ -33,19 +57,27 @@ function addGeoJsonLayer(geojsonData) {
         style: getDefaultStyle,
         onEachFeature: onEachFeature
     }).addTo(map);
+
+    // Zoom map to show all Kenya polygons
+    map.fitBounds(geojsonLayer.getBounds());
 }
 
+
 // Default style for regions
+const DEFAULT_FILL = '#28a745'; // green
+
 function getDefaultStyle(feature) {
-    return {
-        fillColor: '#28a745',
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7
-    };
+  const c = feature?.properties?.fillColor || DEFAULT_FILL;
+  return {
+    fillColor: c,
+    weight: 2,
+    opacity: 1,
+    color: 'white',
+    dashArray: '3',
+    fillOpacity: 0.7
+  };
 }
+
 
 // On each feature (for interactions)
 function onEachFeature(feature, layer) {
@@ -60,23 +92,22 @@ function onEachFeature(feature, layer) {
 
 // Highlight feature on hover
 function highlightFeature(e) {
-    const layer = e.target;
-    
-    layer.setStyle({
-        weight: 4,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.8
-    });
-    
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        layer.bringToFront();
-    }
+  const layer = e.target;
+  layer.setStyle({
+    weight: 4,
+    color: '#666',
+    dashArray: '',
+    // keep the current fillColor; only bump fillOpacity slightly
+    fillOpacity: 0.8
+  });
+  if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) layer.bringToFront();
 }
+
 
 // Reset highlight
 function resetHighlight(e) {
-    geojsonLayer.resetStyle(e.target);
+   // geojsonLayer.resetStyle(e.target);
+    e.target.setStyle(getDefaultStyle(e.target.feature));
 }
 
 // Select region
@@ -143,15 +174,37 @@ function displayResults(data) {
 
 // Update map region color
 function updateMapRegion(regionName, color) {
-    geojsonLayer.eachLayer(function(layer) {
-        if (layer.feature.properties.name === regionName) {
-            layer.setStyle({
-                fillColor: color,
-                fillOpacity: 0.8
-            });
-        }
-    });
+  console.log("🗺️ Trying to color region:", regionName);
+
+  let found = false;
+
+  geojsonLayer.eachLayer(function(layer) {
+    // Normalize names (remove spaces, lowercase)
+    const featureName = layer.feature.properties.name.trim().toLowerCase();
+    const targetName = regionName.trim().toLowerCase();
+
+    // Match exactly or allow "County" suffixes, e.g. "Uasin Gishu County"
+    if (
+      featureName === targetName ||
+      featureName.includes(targetName) ||
+      targetName.includes(featureName)
+    ) {
+      found = true;
+
+      // Persist chosen color in properties
+      layer.feature.properties.fillColor = color;
+      layer.setStyle(getDefaultStyle(layer.feature));
+
+      // Optionally zoom to that region
+      map.fitBounds(layer.getBounds(), { maxZoom: 8 });
+    }
+  });
+
+  if (!found) {
+    console.warn("⚠️ Region not found in GeoJSON for:", regionName);
+  }
 }
+
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {

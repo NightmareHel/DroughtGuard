@@ -1,137 +1,289 @@
-/* DroughtGuard Styles */
+/* =========================================================
+   DroughtGuard - Andromeda-inspired Dashboard Theme (Cleaned)
+   ========================================================= */
 
+/* Root color palette */
 :root {
-    --primary-color: #2e3e50;
-    --secondary-color: #3498db;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --light-bg: #f8f9fa;
-    --dark-text: #2c3e50;
+  --bg-dark: #0e1a2b;
+  --bg-sidebar: #15223b;
+  --bg-card: #1f2d47;
+  --bg-map: #0e1a2b;
+  --accent-primary: #00d0ff;
+  --accent-secondary: #1ea1f3;
+  --accent-success: #4ae3b5;
+  --accent-warning: #ffc107;
+  --accent-danger: #ff6b6b;
+  --text-light: #e0e8f9;
+  --text-muted: #9daac2;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --radius: 10px;
+  --transition: 0.3s ease;
 }
 
+/* Global reset */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--light-bg);
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  margin: 0;
+  overflow: hidden;
 }
 
-.header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
+/* Layout grid */
 .container {
-    display: flex;
-    height: calc(100vh - 60px);
+  display: flex;
+  height: 100vh;
 }
 
+/* ------------------------------------
+   Sidebar (left panel)
+------------------------------------ */
 .sidebar {
-    width: 300px;
-    background: white;
-    padding: 1.5rem;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
-    overflow-y: auto;
+  width: 320px;
+  background: var(--bg-sidebar);
+  padding: 1.5rem 1.25rem;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* keep content aligned to top */
+  gap: 1.25rem;
 }
 
-.map-container {
-    flex: 1;
-    position: relative;
+.sidebar h3,
+.sidebar label {
+  color: var(--text-light);
+  font-weight: 600;
 }
 
-#map {
-    width: 100%;
-    height: 100%;
+.sidebar select,
+.sidebar input,
+.sidebar button {
+  width: 100%;
+  border-radius: var(--radius);
+  border: none;
+  outline: none;
+  padding: 0.75rem;
+  background-color: var(--bg-card);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  transition: var(--transition);
 }
 
-.region-selector {
-    margin-bottom: 1.5rem;
+.sidebar select:focus,
+.sidebar input:focus {
+  border: 1px solid var(--accent-primary);
 }
 
-.region-selector label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--dark-text);
-}
-
-.region-selector select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
+/* Predict Button */
 .predict-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--secondary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  background-color: var(--accent-primary);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem; /* close to search bar */
+  padding: 0.85rem 1rem;
+  border: 1px solid black; /* thin black border */
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .predict-btn:hover {
-    background-color: #2980b9;
+  background-color: var(--accent-secondary);
+  transform: translateY(-2px);
 }
 
+/* Instructions Box */
+.instructions-panel {
+  background-color: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1rem; /* sits right below the button */
+  color: var(--text-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.instructions-panel h3 {
+  color: var(--accent-primary);
+  font-size: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Results box (if applicable) */
 .results-panel {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: var(--light-bg);
-    border-radius: 4px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1rem;
+  color: var(--text-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .results-panel h3 {
-    margin-top: 0;
-    color: var(--dark-text);
+  color: var(--accent-primary);
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.risk-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: white;
+/* ------------------------------------
+   Map container
+------------------------------------ */
+.map-container {
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
+#map {
+  height: 100%;
+  width: 100%;
+  border-left: 1px solid var(--border-color);
+}
+
+/* ------------------------------------
+   Leaflet map tweaks
+------------------------------------ */
+.leaflet-container {
+  background-color: var(--bg-map);
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  color: var(--text-light);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-card);
+}
+
+/* ------------------------------------
+   Legend (color key)
+------------------------------------ */
 .legend {
-    position: absolute;
-    bottom: 2rem;
-    right: 2rem;
-    background: white;
-    padding: 1rem;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  background: var(--bg-card);
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1000; /* bring forward above map */
 }
 
 .legend h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.875rem;
+  color: var(--accent-primary);
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
 }
 
 .legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 2px;
-    margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ------------------------------------
+   Header (navbar)
+------------------------------------ */
+.navbar {
+  background: var(--bg-card);
+  color: var(--text-light);
+  padding: 1rem 2rem; /* thicker top bar */
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem; /* space between logo and brand */
+}
+
+.navbar img {
+  width: 36px; /* slightly larger logo */
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.navbar .brand {
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-primary);
+  font-size: 1.25rem;
+}
+
+.navbar .brand span {
+  color: var(--text-light);
+}
+/* ------------------------------------
+   Risk Indicators & Progress Bars
+------------------------------------ */
+
+.risk-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  box-shadow: 0 0 10px rgba(0, 208, 255, 0.6);
+  transition: var(--transition);
+}
+
+.progress {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 16px;
+  margin-top: 0.5rem;
+  width: 100%;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: var(--radius);
+  transition: width 0.6s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Optional hover glow for interactive cards */
+.forecast-card:hover .progress-bar {
+  box-shadow: 0 0 10px var(--accent-primary);
+}
+
+/* ------------------------------------
+   Scrollbars (dark)
+------------------------------------ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }

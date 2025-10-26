@@ -34,10 +34,13 @@ def index():
     return render_template('index.html')
 
 @app.route('/api/regions')
+@app.route('/api/regions')
 def get_regions():
-    """Get list of regions from dataset."""
-    regions = features_df['region'].tolist()
+    """Return unique list of regions (sorted)."""
+    regions = sorted(features_df['region'].drop_duplicates().tolist())
+    print(f"📍 Returning {len(regions)} unique regions to frontend.")
     return jsonify({'regions': regions})
+
 
 @app.route('/api/predict', methods=['POST'])
 def predict():

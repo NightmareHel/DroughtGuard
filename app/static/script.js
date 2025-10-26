@@ -287,7 +287,7 @@ function loadRegions() {
                 field: "text",
                 direction: "asc"
             },
-            maxOptions: 10,
+            maxOptions: 48,
             placeholder: "Search for a region...",
             });
       } else {

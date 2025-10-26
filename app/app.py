@@ -113,193 +113,52 @@ def get_map_data():
 # -------------------------------------------------------------------
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    """Predict food insecurity risk for a region across multiple time horizons."""
-    data = request.get_json(silent=True) or {}
+    data = request.get_json()
     region = data.get('region')
 
-    if not region:
-        return jsonify({'error': 'Region is required'}), 400
+    region_data = features_df[features_df['region'] == region]
+    if region_data.empty:
+        return jsonify({'error': f'Region not found: {region}'}), 404
+
+    # get the latest entry for that region
+    features = region_data.iloc[-1].to_dict()
+    print(f"🧾 Features used for prediction ({region}):", {k:v for k,v in features.items() if 'lag' in k})
+
+
+    print(f"🧾 Features for prediction: {features}")
 
     try:
-        # Get latest features for the region
-        region_rows = features_df[features_df['region'] == region]
-        if region_rows.empty:
-            return jsonify({'error': f'Region not found in dataset: {region}'}), 404
+        # Get probabilities for all horizons
+        probabilities = predict_risk(features)
+        print(f"🔮 Raw probabilities: {probabilities}")
 
-        latest = region_rows.iloc[-1].to_dict()
-
-        # Get predictions for all horizons
-        probabilities = predict_risk(latest)
-
-        # Categorize risk for each horizon
+        # Build structured prediction objects expected by the frontend
         predictions = {}
-        for horizon, prob in probabilities.items():
-            risk_category = categorize_risk(prob, horizon)
-            predictions[horizon] = {
-                'probability': prob,
-                'category': risk_category['label'],
-                'color': risk_category['color']
+        for h, prob in probabilities.items():
+            cat = categorize_risk(prob)
+            predictions[h] = {
+                "probability": prob,
+                "category": cat["label"],
+                "color": cat["color"]
             }
 
-        # Map region name if needed
-        display_name = REGION_MAP.get(region, region)
-
+        # Return consistent format
         return jsonify({
-            'region': region,
-            'display_name': display_name,
-            'predictions': predictions
+            "region": region,
+            "display_name": region,
+            "predictions": predictions
         })
+
     except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
-
-# -------------------------------------------------------------------
-# 5) Helpers for AI facts & month
-# -------------------------------------------------------------------
-def collect_region_facts(region: str, horizon: int) -> dict:
-    """Collect facts for a region and horizon."""
-    region_data = features_df[features_df["region"] == region]
-    if region_data.empty:
-        raise ValueError(f"Region not found: {region}")
-
-    latest = region_data.iloc[-1]
-    probabilities = predict_risk(latest.to_dict())
-    prob = probabilities.get(horizon, 0.0)
-    risk_category = categorize_risk(prob, horizon)
-
-    facts = {
-        "prob": prob,
-        "risk_tier": risk_category["label"],
-        "ndvi_anomaly": latest.get("ndvi_anomaly", 0),
-        "rainfall_anomaly": latest.get("rainfall_anomaly", 0),
-        "price_yoy": latest.get("food_price_inflation", 0),
-    }
-
-    # Optional rolling average example
-    facts["avg_ndvi_3m"] = region_data["ndvi_anomaly"].tail(3).mean()
-
-    # Deltas if available
-    try:
-        if latest.get('ndvi_anomaly_lag1') is not None and latest.get('ndvi_anomaly') is not None:
-            facts["delta_ndvi"] = float(latest['ndvi_anomaly']) - float(latest['ndvi_anomaly_lag1'])
-    except Exception:
-        facts["delta_ndvi"] = None
-
-    try:
-        if latest.get('food_price_inflation_lag1') is not None and latest.get('food_price_inflation') is not None:
-            facts["delta_price"] = float(latest['food_price_inflation']) - float(latest['food_price_inflation_lag1'])
-    except Exception:
-        facts["delta_price"] = None
-
-    app.logger.info(
-        f"FACTS region={region} h={horizon}: prob={facts['prob']:.3f} "
-        f"ndvi={facts.get('ndvi_anomaly')} price_yoy={facts.get('price_yoy')}"
-    )
-    return facts
-
-
-def get_current_month() -> str:
-    """Get current month string (YYYY-MM) from latest data."""
-    if not features_df.empty and 'month' in features_df.columns:
-        max_month = str(features_df['month'].iloc[-1])
-        return max_month.replace('/', '-')  # e.g., "2024/12" -> "2024-12"
-    return datetime.now().strftime('%Y-%m')
-
-# -------------------------------------------------------------------
-# 6) AI Health
-# -------------------------------------------------------------------
-@app.route('/api/ai/health')
-def ai_health():
-    ok, reason = gemini_ready()
-    return jsonify({"gemini_ready": bool(ok), "reason": reason, "advisor_loaded": AI_ADVISOR_AVAILABLE}), (200 if ok else 503)
-
-# -------------------------------------------------------------------
-# 7) AI Advisor routes
-# -------------------------------------------------------------------
-@app.route('/api/explain/<region>')
-def explain_region(region):
-    """Get AI explanation for a region's forecast."""
-    ok, reason = gemini_ready()
-    if not ok:
-        return jsonify({'error': 'AI Advisor not available', 'detail': reason}), 503
-
-    try:
-        horizon = int(request.args.get('h', '1'))
-        force = request.args.get('force', 'false').lower() == 'true'
-        if horizon not in (1, 2, 3):
-            return jsonify({'error': 'Invalid horizon. Use h=1, 2, or 3'}), 400
-
-        month_str = get_current_month()
-        cache_key = (region, month_str, horizon, 'explain')
-
-        if not force:
-            cached = ai_cache.get(cache_key)
-            if cached:
-                return jsonify({
-                    'region': region,
-                    'horizon': horizon,
-                    'month': month_str,
-                    'cached': True,
-                    'data': cached
-                })
-
-        facts = collect_region_facts(region, horizon)
-        result = get_explanation(facts, region, horizon, month_str)
-
-        ai_cache.set(cache_key, result, ttl_seconds=86400)
-        return jsonify({
-            'region': region,
-            'horizon': horizon,
-            'month': month_str,
-            'cached': False,
-            'data': result
-        })
-    except Exception as e:
+        import traceback
         traceback.print_exc()
-        return jsonify({'error': 'AI explanation failed', 'detail': str(e)}), 502
+        return jsonify({'error': f'Error predicting risk: {str(e)}'}), 500
 
 
-@app.route('/api/brief/<region>')
-def brief_region(region):
-    """Get AI brief for a region's forecast."""
-    ok, reason = gemini_ready()
-    if not ok:
-        return jsonify({'error': 'AI Advisor not available', 'detail': reason}), 503
-
-    try:
-        horizon = int(request.args.get('h', '1'))
-        force = request.args.get('force', 'false').lower() == 'true'
-        if horizon not in (1, 2, 3):
-            return jsonify({'error': 'Invalid horizon. Use h=1, 2, or 3'}), 400
-
-        month_str = get_current_month()
-        cache_key = (region, month_str, horizon, 'brief')
-
-        if not force:
-            cached = ai_cache.get(cache_key)
-            if cached:
-                return jsonify({
-                    'region': region,
-                    'horizon': horizon,
-                    'month': month_str,
-                    'cached': True,
-                    'data': cached
-                })
-
-        facts = collect_region_facts(region, horizon)
-        result = get_brief(facts, region, horizon, month_str)
-
-        ai_cache.set(cache_key, result, ttl_seconds=86400)
-        return jsonify({
-            'region': region,
-            'horizon': horizon,
-            'month': month_str,
-            'cached': False,
-            'data': result
-        })
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({'error': 'AI brief failed', 'detail': str(e)}), 502
-
+@app.route('/api/map-data')
+def get_map_data():
+    """Get GeoJSON data for map visualization."""
+    return jsonify(geojson_data)
 
 if __name__ == '__main__':
     print("[OK] Starting DroughtGuard Flask app...")

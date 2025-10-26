@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update region title
     document.getElementById('region-title').textContent = region;
-
-    // Fetch predictions from backend
+    
+    // Load predictions for the region
     fetch('/api/predict', {
         method: 'POST',
         headers: {
@@ -27,17 +27,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("🔮 Predictions received:", data.predictions);
 
-        // Update last updated timestamp
+        // Update last updated time
         document.getElementById('last-updated').textContent = new Date().toLocaleString();
 
-        // Map horizon keys safely
+        // ✅ Map each horizon safely to its card
         const horizonMap = {
             "1_month": 1,
             "2_month": 2,
             "3_month": 3
         };
 
-        // Update all horizon cards
         for (const [key, pred] of Object.entries(data.predictions)) {
             const h = horizonMap[key];
             if (!h) {
@@ -65,58 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
             indicator.style.backgroundColor = color;
         }
 
-        // Render placeholder chart for historical trends
+        // Optional: visualize historical trends (dummy data for now)
         renderHistoricalChart(region);
     })
     .catch(error => {
-        console.error('❌ Error loading predictions:', error);
-        alert('Failed to load predictions: ' + error.message);
-    });
-
-    // ====================================================
-    // CHART.JS DUMMY HISTORICAL DATA VISUALIZATION
-    // ====================================================
-    function renderHistoricalChart(region) {
-        const ctx = document.getElementById('historical-chart');
-        if (!ctx) {
-            console.warn("⚠️ No chart element found in DOM.");
-            return;
-        }
-
-        // Dummy sample data — replace later with backend history
-        const months = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
-        const riskData = [0.3, 0.35, 0.42, 0.5, 0.47, 0.55];
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: `Predicted Risk for ${region}`,
-                    data: riskData.map(x => x * 100),
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: { display: true, text: "Risk (%)" }
-                    },
-                    x: {
-                        title: { display: true, text: "Month" }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-});
-</script>
+        console.error('❌ Error loading pre

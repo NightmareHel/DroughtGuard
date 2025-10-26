@@ -212,7 +212,7 @@ const DEFAULT_FILL = "#28a745";
 function getDefaultStyle(feature) {
   const c = feature?.properties?.fillColor || DEFAULT_FILL;
   return {
-    fillColor: "#b0b0b0",
+    fillColor: c,
     weight: 1,
     opacity: 1,
     color: "#fff",
@@ -222,13 +222,13 @@ function getDefaultStyle(feature) {
 }
 
 function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: selectRegion,
-    });
-    const name = feature.properties.shapeName || feature.properties.COUNTY || "Unknown Region";
-    layer.bindPopup(name);
+  layer.bindPopup(feature.properties.name || "Unknown Region");
+
+  layer.on({
+    mouseover: highlightFeature,
+    mouseout: resetHighlight,
+    click: selectRegion,
+  });
 }
 
 function highlightFeature(e) {
@@ -287,7 +287,7 @@ function loadRegions() {
                 field: "text",
                 direction: "asc"
             },
-            maxOptions: 48,
+            maxOptions: 10,
             placeholder: "Search for a region...",
             });
       } else {

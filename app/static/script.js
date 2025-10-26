@@ -4,12 +4,9 @@
 
 let map;
 let geojsonLayer;
-<<<<<<< Updated upstream
-=======
 let mapReady = false;                 // set true after GeoJSON added
 let currentPredictions = {};
 const pendingColorUpdates = [];       // queued until mapReady === true
->>>>>>> Stashed changes
 
 // =========================================================
 // UTIL: Logging helpers
@@ -246,106 +243,11 @@ function highlightFeature(e) {
 }
 
 function resetHighlight(e) {
-<<<<<<< Updated upstream
-   // geojsonLayer.resetStyle(e.target);
-    e.target.setStyle(getDefaultStyle(e.target.feature));
-}
-
-// Select region
-function selectRegion(e) {
-    const region = e.target.feature.properties.name;
-    document.getElementById('region-select').value = region;
-}
-
-// Handle predict button click
-document.getElementById('predict-btn').addEventListener('click', function() {
-    const region = document.getElementById('region-select').value;
-    
-    if (!region) {
-        alert('Please select a region');
-        return;
-    }
-    
-    predictRisk(region);
-});
-
-// Predict risk for region
-function predictRisk(region) {
-    fetch('/api/predict', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ region: region })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
-        
-        displayResults(data);
-        updateMapRegion(region, data.risk_category.color);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error predicting risk');
-    });
-}
-
-// Display results
-function displayResults(data) {
-    const resultsPanel = document.getElementById('results');
-    
-    resultsPanel.innerHTML = `
-        <h3>Prediction Results</h3>
-        <p><strong>Region:</strong> ${data.region}</p>
-        <p><strong>Risk Level:</strong> 
-            <span class="risk-badge" style="background-color: ${data.risk_category.color}">
-                ${data.risk_category.label}
-            </span>
-        </p>
-        <p><strong>Risk Probability:</strong> ${(data.probability * 100).toFixed(1)}%</p>
-        <p><strong>NDVI Anomaly:</strong> ${data.features.ndvi_anomaly.toFixed(2)}</p>
-        <p><strong>Rainfall Anomaly:</strong> ${data.features.rainfall_anomaly.toFixed(2)}</p>
-        <p><strong>Food Price Inflation:</strong> ${data.features.food_price_inflation.toFixed(2)}</p>
-    `;
-}
-
-// Update map region color
-function updateMapRegion(regionName, color) {
-  console.log("🗺️ Trying to color region:", regionName);
-
-  let found = false;
-
-  geojsonLayer.eachLayer(function(layer) {
-    // Normalize names (remove spaces, lowercase)
-    const featureName = layer.feature.properties.name.trim().toLowerCase();
-    const targetName = regionName.trim().toLowerCase();
-
-    // Match exactly or allow "County" suffixes, e.g. "Uasin Gishu County"
-    if (
-      featureName === targetName ||
-      featureName.includes(targetName) ||
-      targetName.includes(featureName)
-    ) {
-      found = true;
-
-      // Persist chosen color in properties
-      layer.feature.properties.fillColor = color;
-      layer.setStyle(getDefaultStyle(layer.feature));
-
-      // Optionally zoom to that region
-      map.fitBounds(layer.getBounds(), { maxZoom: 8 });
-    }
-=======
   const layer = e.target;
   layer.setStyle({
     weight: 1,
     color: "#333",
     fillOpacity: 0.7,
->>>>>>> Stashed changes
   });
 }
 

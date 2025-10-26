@@ -30,22 +30,6 @@ def load_features() -> pd.DataFrame:
     print(f"✅ Loaded features from {FEATURES_PATH}")
     print(f"📄 Columns found: {df.columns.tolist()}")
 
-<<<<<<< Updated upstream
-    if os.path.exists(features_path):
-        df = pd.read_csv(features_path)
-
-        # Extract month number if stored like "2023/01"
-        if df['month'].dtype == object:
-            df['month'] = df['month'].astype(str).str.extract(r'(\d{1,2})').astype(float)
-
-        df.columns = [c.strip().lower() for c in df.columns]
-        print(f"✅ Loaded features from: {features_path}")
-        print("Columns:", df.columns.tolist())
-        return df
-    
-    print(f"❌ Features CSV not found at: {features_path}")
-    return pd.DataFrame()
-=======
     # Minimal expected columns (no 'month')
     required = [
         "region",
@@ -89,4 +73,3 @@ def load_geojson() -> dict:
 
     print(f"✅ Loaded GeoJSON: {GEOJSON_PATH}")
     return geojson_data
->>>>>>> Stashed changes

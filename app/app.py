@@ -41,39 +41,11 @@ def get_regions():
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-<<<<<<< Updated upstream
-    """Predict food insecurity risk for a region."""
     data = request.get_json()
     region = data.get('region')
-    
-    if not region:
-        return jsonify({'error': 'Region is required'}), 400
-=======
-    data = request.get_json()
-    region = data.get('region')
->>>>>>> Stashed changes
 
     region_data = features_df[features_df['region'] == region]
     if region_data.empty:
-<<<<<<< Updated upstream
-        return jsonify({'error': 'Region not found'}), 404
-    
-    features = region_data[['month', 'ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation', 'temp_anomaly']].iloc[0]
-    print("🧾 Features for prediction:", features.to_dict())
-
-
-    # Make prediction
-    probability = predict_risk(features.to_dict())
-    risk_category = categorize_risk(probability)
-    
-    # ✅ Return mapped_name (so it matches GeoJSON)
-    return jsonify({
-        'region': mapped_name,
-        'probability': float(probability),
-        'risk_category': risk_category,
-        'features': features.to_dict()
-    })
-=======
         return jsonify({'error': f'Region not found: {region}'}), 404
 
     # get the latest entry for that region
@@ -110,7 +82,6 @@ def predict():
         traceback.print_exc()
         return jsonify({'error': f'Error predicting risk: {str(e)}'}), 500
 
->>>>>>> Stashed changes
 
 @app.route('/api/map-data')
 def get_map_data():

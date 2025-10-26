@@ -207,6 +207,10 @@ function displayResults(data) {
     if (data.predictions[1]) {
         updateMapRegion(data.region, data.predictions[1].color);
     }
+    
+    // Show AI Advisor section and fetch default explanation
+    document.getElementById('ai-advisor-section').style.display = 'block';
+    loadAIExplanation(data.region, 1, 'explain');
 }
 
 // Update map region color
@@ -242,6 +246,77 @@ function updateMapRegion(regionName, color) {
   }
 }
 
+
+// Load AI explanation
+function loadAIExplanation(region, horizon, mode) {
+    const endpoint = mode === 'brief' ? 'brief' : 'explain';
+    const aiText = document.getElementById('ai-text');
+    const aiCached = document.getElementById('ai-cached-badge');
+    
+    aiText.innerHTML = '<em>Loading AI explanation...</em>';
+    aiCached.style.display = 'none';
+    
+    fetch(`/api/${endpoint}/${region}?h=${horizon}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                aiText.innerHTML = `<span style="color: red;">Error: ${data.error}</span>`;
+                return;
+            }
+            
+            // Show cached badge if applicable
+            if (data.cached) {
+                aiCached.style.display = 'block';
+            }
+            
+            // Display explanation
+            let html = `<p>${data.data.explanation}</p>`;
+            
+            // Add actions if in brief mode
+            if (mode === 'brief' && data.data.actions && data.data.actions.length > 0) {
+                html += '<p style="margin-top: 1rem;"><strong>Recommended Actions:</strong></p><ul>';
+                data.data.actions.forEach(action => {
+                    html += `<li>${action}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            // Add disclaimers
+            if (data.data.disclaimers) {
+                html += `<p style="margin-top: 1rem; font-size: 0.85em; color: #6c757d;"><em>${data.data.disclaimers}</em></p>`;
+            }
+            
+            aiText.innerHTML = html;
+            
+            // Update button active states
+            if (mode === 'explain') {
+                document.getElementById('btn-explain').classList.add('ai-btn-active');
+                document.getElementById('btn-brief').classList.remove('ai-btn-active');
+            } else {
+                document.getElementById('btn-explain').classList.remove('ai-btn-active');
+                document.getElementById('btn-brief').classList.add('ai-btn-active');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading AI explanation:', error);
+            aiText.innerHTML = '<span style="color: red;">Error loading AI explanation</span>';
+        });
+}
+
+// Button handlers for AI Advisor
+document.getElementById('btn-explain').addEventListener('click', function() {
+    const region = document.getElementById('region-select').value;
+    if (region) {
+        loadAIExplanation(region, 1, 'explain');
+    }
+});
+
+document.getElementById('btn-brief').addEventListener('click', function() {
+    const region = document.getElementById('region-select').value;
+    if (region) {
+        loadAIExplanation(region, 1, 'brief');
+    }
+});
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {

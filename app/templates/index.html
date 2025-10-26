@@ -18,6 +18,20 @@
             <h3>Instructions</h3>
             <p>Select a region from the dropdown and click "Predict Risk" to see the food insecurity prediction.</p>
         </div>
+        
+        <div id="ai-advisor-section" class="ai-advisor-panel" style="display: none;">
+            <h3>AI Advisor</h3>
+            <div class="ai-mode-toggle">
+                <button id="btn-explain" class="ai-btn ai-btn-active">Explain</button>
+                <button id="btn-brief" class="ai-btn">Brief</button>
+            </div>
+            <div id="ai-text" class="ai-text-container">
+                <em>Loading AI explanation...</em>
+            </div>
+            <div id="ai-cached-badge" class="ai-cached-badge" style="display: none;">
+                💾 Cached
+            </div>
+        </div>
     </div>
     
     <div class="map-container">

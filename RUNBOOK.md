@@ -1,184 +1,198 @@
-# DroughtGuard MLOps Runbook
+# DroughtGuard AI Advisor - Setup and Runbook
 
-## Quick Start Commands
+## Prerequisites
 
-### 1. Environment Variables to Set
+1. **Python 3.11+**
+2. **Virtual Environment** (recommended)
+3. **Gemini API Key** from https://aistudio.google.com/
 
-```bash
-# DigitalOcean Spaces credentials (REPLACE WITH YOUR ACTUAL VALUES)
-export SPACES_ACCESS_KEY="DO801GAW4PPQ7W632JL4"
-export SPACES_SECRET_KEY="PlDMMjCCGiKDWCpl8nL2y3C6snHI9w8xZbY1LflB/d0"
-export SPACES_REGION="nyc3"
-export SPACES_BUCKET="droughtguardbucket"
-export SPACES_ENDPOINT_URL="https://droughtguardbucket.nyc3.digitaloceanspaces.com"
+## Setup Steps
 
-# Training data path (optional - defaults to data/features.csv)
-export TRAIN_DATA_PATH="data/features.csv"
-```
-
-### 2. Commands to Run
+### 1. Install Dependencies
 
 ```bash
-# First time setup
-apt update && apt install -y python3-pip python3-venv git
-git clone $GIT_REPO
-cd DroughtGuard
-python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# Train models
-python model/train_pipeline.py
-
-# Upload to Spaces
-python model/upload_to_spaces.py
 ```
 
-### 3. Check Files in Spaces
+This installs:
+- Flask and web dependencies
+- LangChain and Gemini integration
+- ML dependencies (XGBoost, scikit-learn)
+- Caching utilities (cachetools)
 
-Visit: https://cloud.digitalocean.com/spaces
+### 2. Set Environment Variables
 
-Your bucket should contain:
-- `models/model_h1_*.pkl` - 1-month horizon model
-- `models/model_h2_*.pkl` - 2-month horizon model  
-- `models/model_h3_*.pkl` - 3-month horizon model
-- `models/metrics_*.json` - Performance metrics
-- `data/forecasts.csv` - Generated forecasts
-- `models/upload_manifest.json` - Upload details
+**Required:**
+```bash
+export GEMINI_API_KEY="your_gemini_api_key_here"
+```
 
-### 4. Override CSV Path
+**Optional (with defaults):**
+```bash
+export GEMINI_MODEL="gemini-1.5-pro-latest"      # Default
+export LLM_TEMPERATURE="0.2"                      # Default
+export LLM_TIMEOUT_SECS="20"                      # Default
+export LANGCHAIN_CACHE_DB=".lc_cache.sqlite"     # Default
+```
 
-If you rename your dataset file:
+### 3. Run the Application
 
 ```bash
-export TRAIN_DATA_PATH="path/to/your/updated_dataset.csv"
-python model/train_pipeline.py
+cd app
+python app.py
 ```
 
-## What Each Component Does
+The app will start on `http://localhost:5000`
 
-### `model/config.yaml`
-- Central configuration for all training parameters
-- Feature engineering settings (lags, seasonality, diffs)
-- Risk thresholds per horizon
-- Model training parameters
+## Testing the AI Advisor
 
-### `model/data_checks.py`
-- Validates dataset structure and quality
-- Infers column names automatically
-- Checks for duplicates, missing data, target availability
-- Provides dataset summary
+### 1. Via Browser UI
 
-### `model/train_pipeline.py`
-- Main training pipeline
-- Creates features (lags, seasonality, differences)
-- Trains separate models for h=1,2,3 horizons
-- Generates forecasts for all regions
-- Saves all artifacts
+1. Open `http://localhost:5000`
+2. Select a region from the dropdown
+3. Click "Predict Risk"
+4. View the AI Advisor section with "Explain" and "Brief" buttons
+5. Click buttons to get AI-generated explanations
 
-### `app/utils/categorizer.py`
-- Maps probabilities to risk levels (Low/Moderate/High)
-- Uses horizon-specific thresholds from config
-- Provides color codes and icons for UI
+### 2. Via API
 
-### `model/upload_to_spaces.py`
-- Uploads all artifacts to DigitalOcean Spaces
-- Handles versioned filenames
-- Creates upload manifest
-- Provides public URLs
-
-## Expected Outputs
-
-### Training Output
-```
-DroughtGuard Multi-Horizon Training Pipeline
-==================================================
-Loaded configuration from model/config.yaml
-Loading data from: data/features.csv
-Loaded 1120 rows, 15 columns
-...
-TRAINING COMPLETE!
-==================================================
-Models trained for horizons: [1, 2, 3]
-Features used: 25
-Forecasts generated: 300
-
-Horizon 1 metrics:
-  roc_auc: 0.742
-  brier: 0.189
-  recall_at_fpr_0.2: 0.456
+**Get Explanation:**
+```bash
+curl "http://localhost:5000/api/explain/Nairobi?h=1"
 ```
 
-### Upload Output
+**Get Brief:**
+```bash
+curl "http://localhost:5000/api/brief/Garissa?h=2"
 ```
-DroughtGuard Artifact Upload to DigitalOcean Spaces
-============================================================
-Connecting to bucket: droughtguardbucket
-Endpoint: https://droughtguardbucket.nyc3.digitaloceanspaces.com
-[OK] Connected to DigitalOcean Spaces
 
-Found 4 model files to upload
-
-Uploading files...
-[OK] model_h1_2025-01-26.pkl -> models/model_h1_2025-01-26.pkl
-[OK] data/forecasts.csv -> data/forecasts.csv
-...
-Upload complete! (5 files uploaded)
+**Force Fresh (bypass cache):**
+```bash
+curl "http://localhost:5000/api/explain/Baringo?h=3&force=true"
 ```
+
+## Expected Output
+
+### Explain Endpoint
+
+```json
+{
+  "region": "Nairobi",
+  "horizon": 1,
+  "month": "2024-12",
+  "cached": false,
+  "data": {
+    "explanation": "The forecast for Nairobi over the next month shows moderate drought risk based on recent NDVI anomalies and rainfall patterns.",
+    "disclaimers": "These predictions are based on historical patterns and may not account for unexpected events."
+  }
+}
+```
+
+### Brief Endpoint
+
+```json
+{
+  "region": "Garissa",
+  "horizon": 1,
+  "month": "2024-12",
+  "cached": false,
+  "data": {
+    "explanation": "Detailed briefing text with 5-7 sentences...",
+    "actions": [
+      "Monitor local food prices for any sudden increases",
+      "Ensure early warning systems are operational"
+    ],
+    "disclaimers": "Uncertainty note about predictions."
+  }
+}
+```
+
+## Features
+
+### ✅ Dual Caching
+
+1. **In-Memory TTL Cache** (24 hours)
+   - Fast, thread-safe
+   - Automatically expires
+
+2. **LangChain SQLite Cache**
+   - Persists across restarts
+   - Reduces API calls
+
+### ✅ Structured Output
+
+- Pydantic schemas ensure consistent JSON
+- Automatic parsing and validation
+
+### ✅ Cost Control
+
+- Caching reduces API calls
+- Low temperature (0.2) for deterministic responses
+- 20-second timeout prevents hanging requests
 
 ## Troubleshooting
 
-### Missing Dependencies
+### Error: "LLM not available"
+
+**Cause:** `GEMINI_API_KEY` not set
+
+**Fix:**
 ```bash
-pip install xgboost PyYAML
+export GEMINI_API_KEY="your_key_here"
+# Restart app
 ```
 
-### Dataset Issues
-- Check CSV format and column names
-- Ensure no duplicate (region, date) combinations
-- Verify target columns exist
+### Slow Responses
 
-### Spaces Upload Issues
-- Verify environment variables are set correctly
-- Check bucket permissions
-- Ensure endpoint URL is correct
+**Cause:** Cache not working
 
-### Model Performance Issues
-- Check data quality and missing values
-- Verify target distribution
-- Consider adjusting thresholds in config
+**Fix:**
+1. Check response for `"cached": true`
+2. Use `?force=true` to bypass cache
+3. Clear SQLite cache: `rm .lc_cache.sqlite`
 
-## File Structure After Training
+### "Module not found" errors
+
+**Fix:**
+```bash
+pip install -r requirements.txt
+```
+
+### UI not showing AI Advisor
+
+**Fix:**
+1. Select a region and click "Predict Risk"
+2. AI Advisor section appears after prediction
+3. Click "Explain" or "Brief" buttons
+
+## File Structure
 
 ```
-DroughtGuard/
-├── model/
-│   ├── config.yaml
-│   ├── data_checks.py
-│   ├── train_pipeline.py
-│   ├── upload_to_spaces.py
-│   ├── model_h1_2025-01-26.pkl
-│   ├── model_h2_2025-01-26.pkl
-│   ├── model_h3_2025-01-26.pkl
-│   ├── metrics_2025-01-26.json
-│   └── upload_manifest.json
-├── data/
-│   ├── features.csv
-│   └── forecasts.csv
-└── app/utils/
-    └── categorizer.py
+app/
+├── utils/
+│   ├── llm_chain.py      # LangChain + Gemini integration
+│   └── ai_cache.py        # TTL cache implementation
+├── app.py                 # Flask endpoints
+├── static/
+│   └── script.js          # AI Advisor UI integration
+└── templates/
+    └── index.html         # AI Advisor UI components
+
+docs/
+└── AI_ADVISOR_LANGCHAIN.md   # Detailed documentation
 ```
 
 ## Next Steps
 
-1. **Test the pipeline** with your dataset
-2. **Monitor model performance** using the metrics
-3. **Set up automated retraining** (monthly)
-4. **Integrate with Flask app** to serve predictions
-5. **Set up monitoring** for model drift and performance
+1. ✅ Set `GEMINI_API_KEY`
+2. ✅ Start Flask app
+3. ✅ Test `/api/explain/<region>?h=1`
+4. ✅ Use UI to view AI explanations
+5. ✅ Monitor cache hits in logs
 
-## Support
+## Integration Notes
 
-- Check `model/README_training.md` for detailed documentation
-- Review error messages for specific troubleshooting steps
-- Ensure all environment variables are set correctly
-- Verify dataset format matches expected schema
+- AI Advisor provides **post-hoc explanations** (not used for training)
+- Explains the model's predictions using available features
+- Caches responses to minimize costs
+- Returns JSON for both API and UI consumption

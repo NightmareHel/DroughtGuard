@@ -170,6 +170,7 @@ body {
     padding: 1rem;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1000;
 }
 
 .legend h4 {
@@ -188,4 +189,77 @@ body {
     height: 20px;
     border-radius: 2px;
     margin-right: 0.5rem;
+}
+
+/* AI Advisor Styles */
+.ai-advisor-panel {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.ai-advisor-panel h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--dark-text);
+    font-size: 1.1rem;
+}
+
+.ai-mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.ai-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #e9ecef;
+    color: var(--dark-text);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.ai-btn:hover {
+    background-color: #dee2e6;
+}
+
+.ai-btn-active {
+    background-color: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+}
+
+.ai-text-container {
+    padding: 1rem;
+    background-color: var(--light-bg);
+    border-radius: 4px;
+    min-height: 80px;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.ai-text-container p {
+    margin: 0.5rem 0;
+}
+
+.ai-text-container ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.ai-text-container li {
+    margin: 0.25rem 0;
+}
+
+.ai-cached-badge {
+    color: #6c757d;
+    font-size: 0.8em;
+    margin-top: 0.5rem;
+    text-align: center;
 }

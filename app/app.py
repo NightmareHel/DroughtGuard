@@ -154,12 +154,6 @@ def predict():
         traceback.print_exc()
         return jsonify({'error': f'Error predicting risk: {str(e)}'}), 500
 
-
-@app.route('/api/map-data')
-def get_map_data():
-    """Get GeoJSON data for map visualization."""
-    return jsonify(geojson_data)
-
 if __name__ == '__main__':
     print("[OK] Starting DroughtGuard Flask app...")
     print(f"[OK] Gemini model: {os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')}")

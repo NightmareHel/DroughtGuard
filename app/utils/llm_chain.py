@@ -101,7 +101,7 @@ def _make_prompt(mode: str, region: str, horizon_label: str, current_month: str,
     """Build strict-JSON prompt. We log a hash so you can prove it varies by region/h."""
     if mode == "explain":
         system = (
-            "Context: [structured facts: NDVI, rainfall anomaly, price inflation, probability].
+            "Context: [structured facts: NDVI, rainfall anomaly, price inflation, probability]."
             "Task: Produce a one-paragraph non-operational risk summary and a short list (3) of monitoring questions for humanitarian analysts." 
             "Do NOT provide operational instructions, procurement steps, or contact details for distribution."
             "Output format: JSON { "summary": "...", "monitoring_questions": ["...","...","..."] }"

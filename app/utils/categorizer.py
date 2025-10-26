@@ -4,7 +4,7 @@ Risk categorization utilities.
 
 
 
-def categorize_risk(probability):
+def categorize_risk(probability, horizon=None):
     """
     Categorize risk probability into levels.
     

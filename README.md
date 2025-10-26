@@ -120,9 +120,9 @@ DroughtGuard/
 
 **Team SentinelSight**
 
-- 📊 Data & Modeling — Person A
-- 🔧 Backend API — Person B
-- 🎨 Frontend & Mapping — Person C
+- 📊 Data & Modeling — Oth
+- 🔧 Backend API Routing — Sid
+- 🎨 Frontend & Mapping — Darsh
 
 ## 📋 Judging Criteria Highlights
 

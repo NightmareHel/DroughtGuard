@@ -32,7 +32,8 @@ body {
 /* Layout grid */
 .container {
   display: flex;
-  height: 100vh;
+  height: 100vh;      /* full screen height */
+  overflow: hidden;    /* keep the map fixed and only sidebar scrolls */
 }
 
 /* ------------------------------------
@@ -40,13 +41,21 @@ body {
 ------------------------------------ */
 .sidebar {
   width: 320px;
-  background: var(--bg-sidebar);
-  padding: 1.5rem 1.25rem;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+  background-color: var(--bg-sidebar);
+  padding: 30px;
+  padding-bottom: 70px;
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* keep content aligned to top */
-  gap: 1.25rem;
+
+  /* 👇 The key scroll fix 👇 */
+  overflow-y: auto;
+  height: 100vh;          /* full height of viewport */
+  max-height: 100vh;      /* ensures scroll area matches screen */
+  box-sizing: border-box; /* prevent padding from shrinking height */
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) var(--bg-card);
 }
 
 .sidebar h3,

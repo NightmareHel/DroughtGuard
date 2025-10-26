@@ -1,59 +1,74 @@
 {% extends "base.html" %}
 
-{% block title %}DroughtGuard - Food Insecurity Early Warning{% endblock %}
+{% block title %}DroughtGuard – Food Insecurity Early Warning{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="sidebar">
-        <div class="region-selector">
-            <label for="region-select">Select Region:</label>
-            <select id="region-select">
-                <option value="">-- Select a region --</option>
-            </select>
-        </div>
-        
-        <button id="predict-btn" class="predict-btn">Predict Risk</button>
-        
-        <div id="results" class="results-panel">
-            <h3>Instructions</h3>
-            <p>Select a region from the dropdown and click "Predict Risk" to see the food insecurity prediction.</p>
-        </div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="region-selector">
+      <label for="region-select">Select Region:</label>
+      <select id="region-select">
+        <option value="">-- Select a region --</option>
+      </select>
     </div>
-    
-    <div class="map-container">
-        <div id="map"></div>
-        
-        <div class="legend">
-            <h4>Risk Levels</h4>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #28a745;"></span>
-                <span>Low</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #ffc107;"></span>
-                <span>Moderate</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-color" style="background-color: #dc3545;"></span>
-                <span>High</span>
-            </div>
-        </div>
+
+    <button id="predict-btn" class="predict-btn">Predict Risk</button>
+
+    <div id="results" class="results-panel">
+      <h3>Instructions</h3>
+      <p>
+        Select a region from the dropdown and click <strong>Predict Risk</strong>
+        to view the food-insecurity forecast.
+      </p>
     </div>
+
+    <!-- Optional: AI Brief Panel -->
+    <div id="ai-brief" class="results-panel" style="margin-top:1rem;">
+      <h3>AI Brief</h3>
+      <small id="ai-brief-subtitle" class="text-muted">Select a region to generate</small>
+      <div id="ai-brief-body">
+        <p class="text-muted">No brief yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="map-container">
+    <div id="map"></div>
+
+    <div class="legend">
+      <h4>Risk Levels</h4>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color:#28a745;"></span><span>Low</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color:#ffc107;"></span><span>Moderate</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color:#dc3545;"></span><span>High</span>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 <script>
-// Load regions on page load
-fetch('/api/regions')
-    .then(response => response.json())
+  // Load regions on page load
+  fetch('/api/regions')
+    .then(r => r.json())
     .then(data => {
-        const select = document.getElementById('region-select');
-        data.regions.forEach(region => {
-            const option = document.createElement('option');
-            option.value = region;
-            option.textContent = region;
-            select.appendChild(option);
-        });
+      const select = document.getElementById('region-select');
+      select.innerHTML = '<option value="">-- Select a region --</option>';
+      (data.regions || []).forEach(region => {
+        const opt = document.createElement('option');
+        opt.value = region;
+        opt.textContent = region;
+        select.appendChild(opt);
+      });
     })
-    .catch(error => console.error('Error loading regions:', error));
+    .catch(err => console.error('Error loading regions:', err));
 </script>
 {% endblock %}

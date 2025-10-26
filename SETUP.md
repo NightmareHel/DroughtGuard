@@ -33,6 +33,10 @@ py train_multi_horizon.py
 
 ### 3. Run the Application
 
+# ai version:
+
+set FLASK_APP=app.app
+
 ```bash
 # From the project root
 cd app

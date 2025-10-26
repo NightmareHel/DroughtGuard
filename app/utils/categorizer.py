@@ -1,6 +1,9 @@
 """
 Risk categorization utilities.
 """
+
+
+
 def categorize_risk(probability):
     """
     Categorize risk probability into levels.
@@ -11,6 +14,12 @@ def categorize_risk(probability):
     Returns:
         dict: Risk category with color and label
     """
+    if not (0.0 <= probability <= 1.0):
+        raise ValueError(f"categorize_risk: probability out of range [0,1]: {probability}")
+
+        # debug log visible in server output
+        print(f"[DEBUG] categorize_risk: probability={probability}")
+
     if probability < 0.33:
         return {
             'label': 'Low',

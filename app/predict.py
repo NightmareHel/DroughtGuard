@@ -1,42 +1,46 @@
 """
 Prediction module for food insecurity risk.
 """
-import joblib
 import os
+import joblib
+import numpy as np
 
-# Load model and scaler
-model_path = os.path.join('model', 'model.pkl')
-scaler_path = os.path.join('model', 'scaler.pkl')
+# 🔹 Step 1: set up base directory (root of your project)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-model = joblib.load(model_path) if os.path.exists(model_path) else None
-scaler = joblib.load(scaler_path) if os.path.exists(scaler_path) else None
+# 🔹 Step 2: define model and scaler paths
+MODEL_PATH = os.path.join(BASE_DIR, 'model', 'model.pkl')
+SCALER_PATH = os.path.join(BASE_DIR, 'model', 'scaler.pkl')
 
+# 🔹 Step 3: load them ONCE when this file imports (global scope)
+try:
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+    print(f"✅ Model loaded from: {MODEL_PATH}")
+    print(f"✅ Scaler loaded from: {SCALER_PATH}")
+except Exception as e:
+    print(f"⚠️ Could not load model/scaler: {e}")
+    model, scaler = None, None
+
+# 🔹 Step 4: define the function
 def predict_risk(features):
-    """
-    Predict food insecurity risk probability.
-    
-    Args:
-        features (dict): Dictionary with keys:
-            - ndvi_anomaly
-            - rainfall_anomaly
-            - food_price_inflation
-    
-    Returns:
-        float: Risk probability (0-1)
-    """
+    """Predict food insecurity risk probability."""
     if model is None or scaler is None:
-        # Return mock prediction if model not loaded
-        return 0.5
-    
-    # Convert features to array
-    feature_array = [[
-        features['ndvi_anomaly'],
-        features['rainfall_anomaly'],
-        features['food_price_inflation']
-    ]]
-    
-    # Scale and predict
-    scaled_features = scaler.transform(feature_array)
-    probability = model.predict_proba(scaled_features)[0][1]
-    
+        print("⚠️ Model or scaler not loaded — returning fallback 0.2")
+        return 0.2
+
+    try:
+        feature_array = [[
+            float(features['ndvi_anomaly']),
+            float(features['rainfall_anomaly']),
+            float(features['food_price_inflation']),
+            float(features['temp_anomaly'])
+        ]]
+    except KeyError as e:
+        print(f"❌ Missing key: {e}")
+        return 0.2
+
+    scaled = scaler.transform(feature_array)
+    probability = float(model.predict_proba(scaled)[0][1])
+    print(f"🎯 Predicted probability: {probability:.3f}")
     return probability

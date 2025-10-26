@@ -38,7 +38,11 @@ def load_features():
 
     if os.path.exists(features_path):
         df = pd.read_csv(features_path)
-        # Normalize column names to lowercase
+
+        # Extract month number if stored like "2023/01"
+        if df['month'].dtype == object:
+            df['month'] = df['month'].astype(str).str.extract(r'(\d{1,2})').astype(float)
+
         df.columns = [c.strip().lower() for c in df.columns]
         print(f"✅ Loaded features from: {features_path}")
         print("Columns:", df.columns.tolist())

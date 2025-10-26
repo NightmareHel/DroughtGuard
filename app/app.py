@@ -56,8 +56,10 @@ def predict():
     if region_data.empty:
         return jsonify({'error': 'Region not found'}), 404
     
-    features = region_data[['ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation']].iloc[0]
-    
+    features = region_data[['month', 'ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation', 'temp_anomaly']].iloc[0]
+    print("🧾 Features for prediction:", features.to_dict())
+
+
     # Make prediction
     probability = predict_risk(features.to_dict())
     risk_category = categorize_risk(probability)

@@ -17,7 +17,7 @@ def train_model():
     df = pd.read_csv(data_path)
     
     # Prepare features and target
-    X = df[['ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation']]
+    X = df[['ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation', 'temp_anomaly']]
     y = df['risk_label']  # Assuming binary: 0 = Low, 1 = High
     
     # Split data

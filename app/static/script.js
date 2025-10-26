@@ -212,7 +212,7 @@ const DEFAULT_FILL = "#28a745";
 function getDefaultStyle(feature) {
   const c = feature?.properties?.fillColor || DEFAULT_FILL;
   return {
-    fillColor: c,
+    fillColor: '#b0b0b0', // light gray,
     weight: 1,
     opacity: 1,
     color: "#fff",

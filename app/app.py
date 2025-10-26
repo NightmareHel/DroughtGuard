@@ -41,19 +41,21 @@ def get_regions():
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
+<<<<<<< Updated upstream
     """Predict food insecurity risk for a region."""
     data = request.get_json()
     region = data.get('region')
     
     if not region:
         return jsonify({'error': 'Region is required'}), 400
+=======
+    data = request.get_json()
+    region = data.get('region')
+>>>>>>> Stashed changes
 
-    # ✅ Normalize region name if needed
-    mapped_name = REGION_MAP.get(region, region)
-    
-    # Get features for region
     region_data = features_df[features_df['region'] == region]
     if region_data.empty:
+<<<<<<< Updated upstream
         return jsonify({'error': 'Region not found'}), 404
     
     features = region_data[['month', 'ndvi_anomaly', 'rainfall_anomaly', 'food_price_inflation', 'temp_anomaly']].iloc[0]
@@ -71,6 +73,44 @@ def predict():
         'risk_category': risk_category,
         'features': features.to_dict()
     })
+=======
+        return jsonify({'error': f'Region not found: {region}'}), 404
+
+    # get the latest entry for that region
+    features = region_data.iloc[-1].to_dict()
+    print(f"🧾 Features used for prediction ({region}):", {k:v for k,v in features.items() if 'lag' in k})
+
+
+    print(f"🧾 Features for prediction: {features}")
+
+    try:
+        # Get probabilities for all horizons
+        probabilities = predict_risk(features)
+        print(f"🔮 Raw probabilities: {probabilities}")
+
+        # Build structured prediction objects expected by the frontend
+        predictions = {}
+        for h, prob in probabilities.items():
+            cat = categorize_risk(prob)
+            predictions[h] = {
+                "probability": prob,
+                "category": cat["label"],
+                "color": cat["color"]
+            }
+
+        # Return consistent format
+        return jsonify({
+            "region": region,
+            "display_name": region,
+            "predictions": predictions
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Error predicting risk: {str(e)}'}), 500
+
+>>>>>>> Stashed changes
 
 @app.route('/api/map-data')
 def get_map_data():

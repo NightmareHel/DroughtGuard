@@ -13,7 +13,7 @@ def train_model():
     """Train and save the logistic regression model."""
     
     # Load features
-    data_path = os.path.join('..', 'data', 'features.csv')
+    data_path = os.path.join(os.path.dirname(__file__), "../data/features.csv")
     df = pd.read_csv(data_path)
     
     # Prepare features and target

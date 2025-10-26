@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {% extends "base.html" %}
 
 {% block title %}Region Details - DroughtGuard{% endblock %}
@@ -8,3 +9,76 @@
     <!-- Region-specific content will go here -->
 </div>
 {% endblock %}
+=======
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const region = urlParams.get('region');
+    
+    if (!region) {
+        window.location.href = '/';
+        return;
+    }
+
+    // Update region title
+    document.getElementById('region-title').textContent = region;
+    
+    // Load predictions for the region
+    fetch('/api/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ region: region })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+        if (!data.predictions) throw new Error("No prediction data returned.");
+
+        console.log("🔮 Predictions received:", data.predictions);
+
+        // Update last updated time
+        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+
+        // ✅ Map each horizon safely to its card
+        const horizonMap = {
+            "1_month": 1,
+            "2_month": 2,
+            "3_month": 3
+        };
+
+        for (const [key, pred] of Object.entries(data.predictions)) {
+            const h = horizonMap[key];
+            if (!h) {
+                console.warn(`⚠️ Unknown horizon key: ${key}`);
+                continue;
+            }
+
+            const probPercent = (pred.probability * 100).toFixed(1);
+            const category = pred.category || "Unknown";
+            const color = pred.color || "#999";
+
+            // Update label
+            document.getElementById(`risk-label-${h}`).textContent = category;
+
+            // Update probability text
+            document.getElementById(`risk-prob-${h}`).textContent = `${probPercent}% Risk`;
+
+            // Update progress bar
+            const riskBar = document.getElementById(`risk-bar-${h}`);
+            riskBar.style.width = `${probPercent}%`;
+            riskBar.style.backgroundColor = color;
+
+            // Update circular indicator
+            const indicator = document.getElementById(`risk-${h}`);
+            indicator.style.backgroundColor = color;
+        }
+
+        // Optional: visualize historical trends (dummy data for now)
+        renderHistoricalChart(region);
+    })
+    .catch(error => {
+        console.error('❌ Error loading pre
+>>>>>>> Stashed changes

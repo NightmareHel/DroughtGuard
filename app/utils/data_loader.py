@@ -1,41 +1,36 @@
 """
-Data loading utilities.
+Utility functions for loading and validating DroughtGuard datasets and GeoJSON.
+This version assumes data/features.csv does NOT contain a 'month' column.
 """
-import pandas as pd
-import json
+
 import os
+import json
+import pandas as pd
 
-# Move one level up from /app/utils → project root
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+# --------------------------------------------------------------------
+# PATH CONFIGURATION
+# --------------------------------------------------------------------
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, os.pardir, os.pardir))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+GEO_DIR = os.path.join(PROJECT_ROOT, "app", "static", "geo")
 
-def load_geojson():
-    """Load Kenya regions GeoJSON file and normalize property names."""
-    geojson_path = os.path.join(BASE_DIR, 'app', 'static', 'geo', 'kenya.json')
-    try:
-        with open(geojson_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            print(f"✅ Loaded GeoJSON: {geojson_path}")
-    except Exception as e:
-        print(f"❌ Failed to read GeoJSON: {e}")
-        return {}
+FEATURES_PATH = os.path.join(DATA_DIR, "features.csv")
+GEOJSON_PATH = os.path.join(GEO_DIR, "kenya.json")
 
-    # Normalize property names so JS can read feature.properties.name
-    for feat in data.get("features", []):
-        props = feat.get("properties", {})
-        name = (
-            props.get("shapeName")
-            or props.get("ADM1_NAME")
-            or props.get("COUNTY")
-            or props.get("NAME_1")
-        )
-        if name:
-            props["name"] = name.strip().title()
-    return data
+# --------------------------------------------------------------------
+# DATA LOADING
+# --------------------------------------------------------------------
+def load_features() -> pd.DataFrame:
+    """Load and validate the feature dataset."""
+    if not os.path.exists(FEATURES_PATH):
+        raise FileNotFoundError(f"❌ features.csv not found at {FEATURES_PATH}")
 
-def load_features():
-    """Load regional features CSV."""
-    features_path = os.path.join(BASE_DIR, 'data', 'features.csv')
+    df = pd.read_csv(FEATURES_PATH)
+    print(f"✅ Loaded features from {FEATURES_PATH}")
+    print(f"📄 Columns found: {df.columns.tolist()}")
 
+<<<<<<< Updated upstream
     if os.path.exists(features_path):
         df = pd.read_csv(features_path)
 
@@ -50,3 +45,48 @@ def load_features():
     
     print(f"❌ Features CSV not found at: {features_path}")
     return pd.DataFrame()
+=======
+    # Minimal expected columns (no 'month')
+    required = [
+        "region",
+        "ndvi_anomaly",
+        "rainfall_anomaly",
+        "food_price_inflation",
+        "temp_anomaly",
+        "risk_label",
+        "ndvi_anomaly_lag1",
+        "ndvi_anomaly_lag2",
+        "rainfall_anomaly_lag1",
+        "rainfall_anomaly_lag2",
+        "food_price_inflation_lag1",
+        "food_price_inflation_lag2",
+        "temp_anomaly_lag1",
+        "temp_anomaly_lag2",
+    ]
+
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        print(f"⚠️ Warning: Missing columns in features.csv: {missing}")
+    else:
+        print("✅ All expected feature columns present.")
+
+    # Basic cleaning
+    df = df.fillna(0)
+    df["region"] = df["region"].astype(str)
+
+    return df
+
+# --------------------------------------------------------------------
+# GEOJSON LOADING
+# --------------------------------------------------------------------
+def load_geojson() -> dict:
+    """Load the Kenya GeoJSON file used for mapping regions."""
+    if not os.path.exists(GEOJSON_PATH):
+        raise FileNotFoundError(f"❌ GeoJSON file not found at {GEOJSON_PATH}")
+
+    with open(GEOJSON_PATH, "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+
+    print(f"✅ Loaded GeoJSON: {GEOJSON_PATH}")
+    return geojson_data
+>>>>>>> Stashed changes

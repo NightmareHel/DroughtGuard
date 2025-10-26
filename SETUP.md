@@ -26,6 +26,7 @@ cd model
 
 # Train the logistic regression model
 python train_model.py
+py train_multi_horizon.py
 
 # This will create model.pkl and scaler.pkl files
 ```

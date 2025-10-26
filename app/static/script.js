@@ -212,7 +212,7 @@ const DEFAULT_FILL = "#28a745";
 function getDefaultStyle(feature) {
   const c = feature?.properties?.fillColor || DEFAULT_FILL;
   return {
-    fillColor: c,
+    fillColor: "#b0b0b0",
     weight: 1,
     opacity: 1,
     color: "#fff",
@@ -222,13 +222,13 @@ function getDefaultStyle(feature) {
 }
 
 function onEachFeature(feature, layer) {
-  layer.bindPopup(feature.properties.name || "Unknown Region");
-
-  layer.on({
-    mouseover: highlightFeature,
-    mouseout: resetHighlight,
-    click: selectRegion,
-  });
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: selectRegion,
+    });
+    const name = feature.properties.shapeName || feature.properties.COUNTY || "Unknown Region";
+    layer.bindPopup(name);
 }
 
 function highlightFeature(e) {

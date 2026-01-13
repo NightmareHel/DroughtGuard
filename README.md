@@ -1,13 +1,5 @@
 # DroughtGuard
 
-> ⚠️ **Fork Notice**
->
-> This repository is a fork of the original DroughtGuard hackathon project:
-> https://github.com/ORIGINAL_OWNER/DroughtGuard  
->
-> Built as a **team project** during a 24-hour hackathon.
->
-
 > AI-Driven Food Insecurity Early-Warning System for Kenya
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
